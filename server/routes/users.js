@@ -29,7 +29,7 @@ console.log(respond)
 
     if(!respond.success){
         return res.json({
-            msg: "Invalid input"
+            msg: "Invalid input "
         })
     }
 
@@ -65,7 +65,7 @@ res.json({
     
 })
 
-router.post('/signin' , async(req,res)=>{
+router.post('/signin', async(req,res)=>{
 
     const userdetails = req.body;
 
@@ -123,7 +123,17 @@ res.status(200).json({
     
   }
 
+})
 
+router.get('/chat', async(req,res)=>{
+
+    const  users = await  newUserModel.find({});
+
+    res.json({
+        user: users.map((u)=>({
+          firstname : u.firstname
+        }))
+    })
 
 })
 
