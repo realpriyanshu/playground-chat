@@ -1,3 +1,5 @@
+import React from "react"; // Importing React library
+
 import Heading from "../components/Heading.jsx";
 import Subheading from "../components/Subheading.jsx";
 import Inputbox from "../components/Inputbox.jsx";
@@ -26,6 +28,7 @@ export default function Signin() {
       console.log(resp);
       console.log(resp.data.token)
       localStorage.setItem("token",resp.data.token);
+      navigate('/')
 
       // Navigate to the dashboard
     //   navigate("/dashboard");

@@ -1,3 +1,4 @@
+import React from "react"; // Importing React library
 import Heading from '../components/Heading.jsx'
 import Subheading from '../components/Subheading.jsx'
 import Inputbox from '../components/Inputbox.jsx'
@@ -5,13 +6,8 @@ import Btn  from '../components/Button.jsx'
 import BottomWarning from '../components/BottomWarning.jsx'
 import Signin from './Signin.jsx'
 import { useState } from 'react'
-
-
+import {useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import {  useNavigate } from 'react-router-dom'
-
-
-
 
 export default  function SignUp(){
 
@@ -42,7 +38,7 @@ export default  function SignUp(){
             
            
             const user = {
-                "username" :username,
+             "username" :username,
               "password":  password,
               "firstname" : firstName,
               "lastname":  lastName
@@ -53,7 +49,7 @@ export default  function SignUp(){
        
           localStorage.setItem("token", response.data.token);
           console.log(response.data.token)
-        //   navigate("/dashboard")
+          navigate("/")
          
          
         }} />
