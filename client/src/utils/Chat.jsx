@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react"; // Importing hooks for state management and memoization
+import { useState, useMemo, useEffect } from "react"; // Importing hooks for state management and memoization
 import { io } from "socket.io-client"; // Importing Socket.IO client for real-time communication
 import React from "react"; // Importing React library
 import Message from "./Message"; // Importing the `Message` component to display individual messages
+import axios from "axios"; // Importing axios for making API calls
 
 function Chat() {
   const [message, setmessage] = useState(""); // State to hold the current input message
@@ -10,30 +11,41 @@ function Chat() {
   // Creating and memoizing the Socket.IO connection to avoid reconnecting on every render
   const socket = useMemo(() => io("http://localhost:5000"), []);
 
-  // Listening for the "recieve" event from the server to handle incoming messages
-  socket.on("recieve", (e) => {
-    if (e.trim() !== "") {
-      setmessages([...messages, e]); // Add the received message to the list
-      setmessage(""); // Clear the input field
-    }
-  });
+  // Register socket event listeners in a `useEffect` to ensure they are added only once
+  useEffect(() => {
+    // Listening for the "recieve" event from the server
+    socket.on("recieve", (e) => {
+      if (e.msg.trim() !== "") {
+        setmessages((prevMessages) => [...prevMessages, e]); // Append new message to the list
+      }
+    });
+
+    // Cleanup function to remove the event listener when the component unmounts
+    return () => {
+      socket.off("recieve");
+    };
+  }, [socket]);
 
   // Function to handle the form submission (sending a message)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent the default form submission behavior
-    socket.emit("send", message); // Emit the "send" event with the message to the server
-    // Uncomment below to add the message to the local list without waiting for server response
-    // if(message.trim()!== ""){
-    //   setmessages([...messages,message]);
-    // }
-  };
 
-  // Listening for a "welcome" event from the server (placeholder code for future handling)
-  socket.on("welcome", (s) => {
-    // Currently does nothing with the "welcome" message
-    // Example: Could render a `Message` component or display the welcome message
-    // <Message message={{ s }} />
-  });
+    try {
+      // API call to fetch user details using axios
+      const response = await axios.get("http://localhost:5000/user/getuser", {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"), // Attaching token for authentication
+        },
+      });
+
+      const userFirstname = response.data.firstname; // Extract user's first name from response
+    
+      // Emitting the message and user details to the server
+      socket.emit("send", { msg: message, user: userFirstname });
+    } catch (error) {
+      console.error("Error fetching user details:", error); // Log error if API call fails
+    }
+  };
 
   return (
     <>
@@ -68,9 +80,13 @@ function Chat() {
           {/* Message display area */}
           <div id="msg" className="hide-scrollbar flex-1 overflow-y-auto p-4">
             <div className="flex flex-col ml-10 items-start justify-center text-white">
-              {messages.map((msg, index) => (
-                // Mapping over the messages array to render each message using the `Message` component
-                <Message key={index} message={msg} />
+              {/* Mapping over the messages array to render each message using the `Message` component */}
+              {messages.map((i, index) => (
+                <Message
+                  key={index}
+                  message={i.msg} // Pass only the message text to `Message`
+                  user={i.user} // Pass user info to `Message`
+                />
               ))}
             </div>
           </div>
@@ -83,22 +99,12 @@ function Chat() {
               onChange={(e) => {
                 setmessage(e.target.value); // Update the message state on input change
               }}
-              // Uncomment to allow submitting messages with Enter key (while preventing newline)
-              // onKeyDown={(e) => {
-              //   if (e.key === "Enter" && !e.shiftKey) {
-              //     e.preventDefault(); // Prevent default newline behavior
-              //     handleSubmit(e); // Trigger message sending
-              //   }
-              // }}
             ></textarea>
 
             {/* Send button */}
             <button
               type="submit"
               className="h-10 rounded-md w-20 bg-blue-500 ml-4 border-transparent"
-              onClick={function () {
-                console.log(); // Placeholder for debugging
-              }}
             >
               Send
             </button>

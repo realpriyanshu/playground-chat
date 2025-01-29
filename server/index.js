@@ -1,12 +1,13 @@
 
 const express = require('express')
 const { default: mongoose } = require('mongoose')
-require('dotenv').config();
-const newUserModel = require("./models/model.js");
-const userRouter = require('./routes/users.js')
-const cors = require('cors');
 const { Server } = require('socket.io');
 const { createServer } = require('http');
+const newUserModel = require("./models/model.js");
+const userRouter = require('./routes/users.js')
+require('dotenv').config();
+
+const cors = require('cors');
 
 const app = express()
 const server = createServer(app);
