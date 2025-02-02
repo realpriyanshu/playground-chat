@@ -5,33 +5,36 @@ import Subheading from "../components/Subheading.jsx";
 import Inputbox from "../components/Inputbox.jsx";
 import Btn from "../components/Button.jsx";
 import BottomWarning from "../components/BottomWarning.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation } from "react-router-dom";
 import { useState } from "react";
+import dotenv from 'dotenv'
 import axios from "axios";
 
 export default function Signin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
  const [error , setError] = useState("")
+
+ const redirectPath = new URLSearchParams(location.search).get("redirect") || "/";
 
   const handleSignin = async () => {
     try {
       // Make the API call to sign in
       
-      const resp = await axios.post("http://localhost:5000/user/signin", {
+      const resp = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/signin`, {
        username: username,
        password:password
       });
 
       // Save the token to 
-      console.log(resp);
-      console.log(resp.data.token)
+     
       localStorage.setItem("token",resp.data.token);
       navigate('/')
+      navigate(redirectPath); 
 
-      // Navigate to the dashboard
-    //   navigate("/dashboard");
+    
     } catch (err) {
       // Log error and show a user-friendly message
       console.error("Sign-in error:", err.response?.data || err.message);
@@ -65,7 +68,7 @@ export default function Signin() {
           {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           <BottomWarning
             label={"Don't have an account? "}
-            to={"/"}
+            to={"/signup"}
             Bottomtext={"Sign Up"}
           />
         </div>

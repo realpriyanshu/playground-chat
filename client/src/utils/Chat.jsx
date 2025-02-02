@@ -1,117 +1,154 @@
-import { useState, useMemo, useEffect } from "react"; // Importing hooks for state management and memoization
-import { io } from "socket.io-client"; // Importing Socket.IO client for real-time communication
-import React from "react"; // Importing React library
-import Message from "./Message"; // Importing the `Message` component to display individual messages
-import axios from "axios"; // Importing axios for making API calls
+import { useState, useMemo, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
+import axios from "axios";
+import NavbarForChat from "./NavbarForChat";
+import { useNavigate, useParams } from "react-router-dom";
+import React from 'react';
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+import Message from "./Message"; // Import the Message component
 
 function Chat() {
-  const [message, setmessage] = useState(""); // State to hold the current input message
-  const [messages, setmessages] = useState([]); // State to hold the list of messages
+  const { roomId } = useParams();
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [createdRoom, setCreatedRoom] = useState(null);
+  const [roomInput, setRoomInput] = useState("");
+  const lastMessageRef = useRef(null); // Reference for the last message
+  const socket = useMemo(() => io(`${import.meta.env.VITE_APP_URL}`), []);
+  const navigate = useNavigate();
 
-  // Creating and memoizing the Socket.IO connection to avoid reconnecting on every render
-  const socket = useMemo(() => io("http://localhost:5000"), []);
-
-  // Register socket event listeners in a `useEffect` to ensure they are added only once
   useEffect(() => {
-    // Listening for the "recieve" event from the server
+    // Clear messages when a new room is created or joined
+    setMessages([]);
+
     socket.on("recieve", (e) => {
       if (e.msg.trim() !== "") {
-        setmessages((prevMessages) => [...prevMessages, e]); // Append new message to the list
+        setMessages((prevMessages) => [...prevMessages, e]);
       }
     });
 
-    // Cleanup function to remove the event listener when the component unmounts
+    socket.on("room-created", (data) => {
+      setCreatedRoom(data);
+      navigate(`/chat/${data.roomId}`); // Redirect to the new room
+      setTimeout(() => setCreatedRoom(null), 15000); // Clear the room creation message after 15 seconds
+    });
+
+    socket.on("joined-room", (data) => {
+      console.log(`Joined room: ${data.roomId}`);
+    });
+
+    if (roomId) {
+      socket.emit("join-room", roomId);
+    }
+
     return () => {
       socket.off("recieve");
+      socket.off("room-created");
+      socket.off("joined-room");
     };
-  }, [socket]);
+  }, [socket, roomId]);
 
-  // Function to handle the form submission (sending a message)
+  // Scroll to the last message whenever messages change
+  useEffect(() => {
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent the default form submission behavior
+    e.preventDefault();
+    if (message.trim()) {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_APP_URL}/user/getuser`, {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
+        const userFirstname = response.data.firstname;
+        socket.emit("send", { msg: message, user: userFirstname, roomId });
+        setMessage("");
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    }
+  };
 
-    try {
-      // API call to fetch user details using axios
-      const response = await axios.get("http://localhost:5000/user/getuser", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"), // Attaching token for authentication
-        },
-      });
+  const createRoom = () => {
+    socket.emit("create-room"); // Emit room creation request
+  };
 
-      const userFirstname = response.data.firstname; // Extract user's first name from response
-    
-      // Emitting the message and user details to the server
-      socket.emit("send", { msg: message, user: userFirstname });
-    } catch (error) {
-      console.error("Error fetching user details:", error); // Log error if API call fails
+  const joinRoom = () => {
+    if (roomInput.trim()) {
+      socket.emit("join-room", roomInput); // Emit join-room event
     }
   };
 
   return (
-    <>
-      <div id="main" className="w-screen h-screen">
-        {/* Main container for the chat application */}
-        <div
-          id="page1"
-          className="w-full h-full bg-gray-900 flex flex-col justify-between"
-        >
-          {/* Navigation bar */}
-          <div id="nav">
-            <nav className="bg-white w-screen flex border-gray-200 dark:bg-gray-900">
-              <div className="max-w-screen-xl justify-end flex flex-wrap items-center p-4">
-                {/* Brand/logo section */}
-                <a
-                  href="https://flowbite.com/"
-                  className="flex items-center space-x-3 rtl:space-x-reverse"
-                >
-                  <img
-                    src="https://flowbite.com/docs/images/logo.svg"
-                    className="h-8"
-                    alt="Flowbite Logo"
-                  />
-                  <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-                    Messenger
-                  </span>
-                </a>
-              </div>
-            </nav>
-          </div>
+    <div id="main" className="w-screen h-screen flex flex-col overflow-hidden">
+      <div
+        id="page1"
+        className="w-full h-full bg-gradient-to-r from-black to-black flex flex-col justify-between"
+      >
+        <NavbarForChat />
 
-          {/* Message display area */}
-          <div id="msg" className="hide-scrollbar flex-1 overflow-y-auto p-4">
-            <div className="flex flex-col ml-10 items-start justify-center text-white">
-              {/* Mapping over the messages array to render each message using the `Message` component */}
-              {messages.map((i, index) => (
-                <Message
-                  key={index}
-                  message={i.msg} // Pass only the message text to `Message`
-                  user={i.user} // Pass user info to `Message`
-                />
-              ))}
+        <div className="room-section fixed top-16 left-0 right-0 z-50 text-white text-center md:absolute md:top-4 md:right-4 md:left-auto md:text-right">
+          <button
+            onClick={createRoom}
+            className="h-10 rounded-md w-full md:w-28 bg-purple-600 hover:bg-purple-500 mb-4 md:mb-0 border-transparent text-white"
+          >
+            Create Room
+          </button>
+
+          {createdRoom && (
+            <div className="bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-500 bg-clip-text text-transparent">
+             <p>
+  Room Created: {`${FRONTEND_URL}/chat/${createdRoom.roomId}`}
+</p>
+
+              <p>
+                Share this URL to invite others (ensure they are signed up).
+              </p>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Input form for sending messages */}
-          <form onSubmit={handleSubmit} id="chat" className="flex">
+        <div
+          id="msg"
+          className="hide-scrollbar flex-1 overflow-y-auto p-4 mt-32 md:mt-20"
+        >
+          <div className="flex flex-col items-start justify-center text-white space-y-2 break-words">
+            {messages.map((e, index) => (
+              <Message key={index} message={e.msg} user={e.user} /> // Use your Message component here
+            ))}
+            <div ref={lastMessageRef} />{" "}
+            {/* This will scroll to the last message */}
+          </div>
+        </div>
+        <form
+          onSubmit={handleSubmit}
+          id="chat"
+          className="flex flex-col md:flex-row items-center justify-center mb-4 md:mb-11 px-4 md:px-0"
+        >
+          <div className="flex justify-center items-center w-full">
             <textarea
-              className="bg-slate-300 text-black h-10 w-2/3 ml-48 mb-11 rounded-md justify-end mt-auto resize-none text-center"
-              value={message} // Bind textarea value to the `message` state
-              onChange={(e) => {
-                setmessage(e.target.value); // Update the message state on input change
-              }}
+              className="bg-slate-300 text-black h-10 w-full md:w-2/3 rounded-md resize-none text-center"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && !e.shiftKey && handleSubmit(e)
+              }
             ></textarea>
 
-            {/* Send button */}
             <button
               type="submit"
-              className="h-10 rounded-md w-20 bg-blue-500 ml-4 border-transparent"
+              className="h-10 px-4 py-2 rounded-md w-auto md:w-20 bg-purple-600 hover:bg-purple-500 md:ml-4 border-transparent text-white"
             >
               Send
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
-    </>
+    </div>
   );
 }
 

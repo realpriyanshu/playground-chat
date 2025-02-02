@@ -1,28 +1,32 @@
-import React from 'react';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SignUp from "./pages/Signup.jsx";
+import Signin from "./pages/Signin.jsx";
+import Landing from "./pages/Landing.jsx";
+import React from "react"; // Importing React library
 
-
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import SignUp from './pages/Signup.jsx';
-import Signin from './pages/Signin.jsx';
-import Chat from './utils/Chat.jsx';
-
-
-
+import Chat from "./utils/Chat.jsx";
+import PrivateRoute from "./utils/PrivateRoute.jsx"; // Import PrivateRoute
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* <Route path='/' element={<div>Home</div>} /> */}
+        <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/" element={<div>Landing Page</div>} />
         <Route path="/signin" element={<Signin />} />
-        <Route path="/chat" element={<Chat/>} />
-       
+        
+        {/* Protect the Chat route */}
+        <Route
+          path="/chat/:roomId?"
+          element={
+            <PrivateRoute>
+              <Chat />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
-
