@@ -1,9 +1,9 @@
+import React from 'react';
 import { useState, useMemo, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import NavbarForChat from "./NavbarForChat";
 import { useNavigate, useParams } from "react-router-dom";
-import React from 'react';
 const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 import Message from "./Message"; // Import the Message component
 
@@ -14,7 +14,7 @@ function Chat() {
   const [createdRoom, setCreatedRoom] = useState(null);
   const [roomInput, setRoomInput] = useState("");
   const lastMessageRef = useRef(null); // Reference for the last message
-  const socket = useMemo(() => io(`${import.meta.env.VITE_APP_URL}`), []);
+  const socket = useMemo(() => io(`${import.meta.env.VITE_BACKEND_URL}`), []);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,7 +59,7 @@ function Chat() {
     e.preventDefault();
     if (message.trim()) {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_APP_URL}/user/getuser`, {
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/getuser`, {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
           },

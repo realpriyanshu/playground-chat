@@ -22,11 +22,14 @@ export default function Signin() {
   const handleSignin = async () => {
     try {
       // Make the API call to sign in
-      
+      console.log(username);
+      console.log(password);
       const resp = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/signin`, {
        username: username,
        password:password
       });
+
+      console.log(resp.data)
 
       // Save the token to 
      

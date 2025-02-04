@@ -1,3 +1,6 @@
+
+
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -26,11 +29,14 @@ const HeroSection = () => {
       {/* Content */}
       <div className="relative z-10 text-white w-full max-w-3xl mx-auto px-4">
         <h1 className="text-3xl sm:text-4xl  md:text-5xl font-bold mb-4 text-purple-200 typing-effect break-words whitespace-normal w-full">
-        Talk Without Judgment. Share Without Fear.
+        Talk Without Judgement
+        </h1>
+        <h1 className="text-3xl sm:text-4xl  md:text-5xl font-bold mb-4 text-purple-200 typing-effect1 break-words whitespace-normal w-full">
+        Share Without Fear.
         </h1>
         <p className="text-lg mb-6">
           Join GhostNet and experience the freedom of anonymous communication. No
-          names, no pressure, just pure conversations.
+          real names, no pressure, just pure conversations.
         </p>
         {login? 
           <Link
