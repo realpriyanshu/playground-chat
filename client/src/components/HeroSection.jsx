@@ -49,7 +49,7 @@ const HeroSection = () => {
          to="/signin"
          className="bg-purple-600 text-white py-3 px-8 rounded-full text-lg font-semibold hover:bg-purple-500 transition duration-300"
        >
-         Log in to Start chat 
+        Connect with your ghost !
        </Link>
        }
       </div>
