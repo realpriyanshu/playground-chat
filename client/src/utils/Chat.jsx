@@ -29,9 +29,13 @@ function Chat() {
 
     socket.on("room-created", (data) => {
       setCreatedRoom(data);
+
+      // *** Key Change: Tell server to create the room if needed ***
+      socket.emit("join-room", data.roomId);  // Join immediately after creation
+
       navigate(`/chat/${data.roomId}`); // Redirect to the new room
-      setTimeout(() => setCreatedRoom(null), 15000); // Clear the room creation message after 15 seconds
-    });
+      setTimeout(() => setCreatedRoom(null), 15000); 
+  });
 
     socket.on("joined-room", (data) => {
       console.log(`Joined room: ${data.roomId}`);
