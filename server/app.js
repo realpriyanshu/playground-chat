@@ -37,23 +37,22 @@ io.on('connection', (socket) => {
   // Create Room
   socket.on('create-room', () => {
     const roomId = Math.random().toString(36).substring(2, 9);
-    // No longer creating room here.
-    console.log(`Room creation requested: ${roomId}`);
-    socket.emit('room-created', { roomId }); // Send back to the client
-});
+    rooms[roomId] = []; // Initialize new room
+    console.log(`Room created: ${roomId}`);
+    socket.emit('room-created', { roomId });
+  });
 
-// Join Room (Modified)
-socket.on('join-room', (roomId) => {
+  // Join Room
+  socket.on('join-room', (roomId) => {
     if (!rooms[roomId]) {
-        rooms[roomId] = []; // Create room if it doesn't exist
-        console.log(`Room created: ${roomId}`);
+      rooms[roomId] = []; // Create room if it doesn't exist
     }
     socket.join(roomId);
     console.log(`User ${socket.id} joined room ${roomId}`);
-
+    
     // Send previous messages to user
     socket.emit('joined-room', { roomId, messages: rooms[roomId] });
-});
+  });
 
   // Send Message
   socket.on('send', (data) => {

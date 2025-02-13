@@ -24,15 +24,6 @@ function App() {
             </PrivateRoute>
           }
         />
-      
-        <Route
-          path="/chat"
-          element={
-            <PrivateRoute>
-              <Chat />
-            </PrivateRoute>
-          }
-        />
       </Routes>
     </BrowserRouter>
   );
