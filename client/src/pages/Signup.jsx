@@ -1,63 +1,61 @@
-import React from "react"; // Importing React library
-import Heading from '../components/Heading.jsx'
-import Subheading from '../components/Subheading.jsx'
-import Inputbox from '../components/Inputbox.jsx'
-import Btn  from '../components/Button.jsx'
-import BottomWarning from '../components/BottomWarning.jsx'
-import Signin from './Signin.jsx'
-import { useState } from 'react'
-import {useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-export default  function SignUp(){
+import Heading from "../components/Heading.jsx";
+import Subheading from "../components/Subheading.jsx";
+import Inputbox from "../components/Inputbox.jsx";
+import Btn from "../components/Button.jsx";
+import BottomWarning from "../components/BottomWarning.jsx";
+import BgAnimation from "../components/BgAnimation.jsx"; // Import Background Animation
 
-    const [firstName , setFirstname ] = useState("");
-    const [lastName , setLastname ] = useState("");
-    const [username , setUsername ] = useState("");
-    const [password , setPassword ] = useState("");
-    const navigate = useNavigate();
-    return(
-        <>
-        <div className="flex flex-col md:flex-row items-center justify-evenly h-screen">
-            <div className=''><Heading label = "Sign Up" /></div>
-           
-            <div >
-        <Subheading label = "Enter your information to create your account" />
-        <Inputbox label={"First Name"} onchange={(e)=>{
+export default function SignUp() {
+  const navigate = useNavigate();
+  const [firstName, setFirstname] = useState("");
+  const [lastName, setLastname] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-            setFirstname(e.target.value);
+  const handleSignup = async () => {
+    try {
+      const user = {
+        username,
+        password,
+        firstname: firstName,
+        lastname: lastName,
+      };
 
-        }} />
-        <Inputbox label={"Last Name"} onchange={(e)=>{setLastname(e.target.value);
-}}  />
-        <Inputbox label={"Email"}  onchange={(e)=>{setUsername(e.target.value);
-}} />
-        <Inputbox label={"Password"}  onchange={(e)=>{setPassword(e.target.value);
-}}  />
-        <Btn label={"Sign Up"} onClick={async()=>{
-            
-           
-            const user = {
-             "username" :username,
-              "password":  password,
-              "firstname" : firstName,
-              "lastname":  lastName
-               
-            }
-          const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, user);
-              
-       
-          localStorage.setItem("token", response.data.token);
-          console.log(response.data.token)
-          navigate("/")
-         
-         
-        }} />
-        <BottomWarning label={"Already have an account ?"} to={"/Signin"} Bottomtext ={"Signin"} />
-            </div>
-        
-        </div>
-       
-</>
-    )
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, user);
+
+      localStorage.setItem("token", response.data.token);
+      navigate("/");
+    } catch (err) {
+      console.error("Sign-up error:", err.response?.data || err.message);
+      setError("Signup failed. Please try again.");
+    }
+  };
+
+  return (
+    <div className="relative flex flex-col md:flex-row items-center justify-evenly h-screen">
+      {/* Background Animation */}
+      <BgAnimation />
+
+      <div className="relative z-10 p-6 bg-purple-300/30 backdrop-blur-lg rounded-2xl shadow-lg">
+        <Heading label="Sign Up" />
+        <Subheading label="Enter your information to create your account" />
+
+        <Inputbox label="First Name" onchange={(e) => setFirstname(e.target.value)} />
+        <Inputbox label="Last Name" onchange={(e) => setLastname(e.target.value)} />
+        <Inputbox label="Email" onchange={(e) => setUsername(e.target.value)} />
+        <Inputbox label="Password" onchange={(e) => setPassword(e.target.value)} />
+
+        <Btn label="Sign Up" onClick={handleSignup} />
+
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
+        <BottomWarning label="Already have an account?" to="/signin" Bottomtext="Sign In" />
+      </div>
+    </div>
+  );
 }

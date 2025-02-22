@@ -6,7 +6,7 @@ export default  function Subheading({label}){
     return(
         <>
 
-<div className="text-gray-600 pb-5">{label}</div>
+<div className="text-white pb-5">{label}</div>
 
 </>
     )

@@ -8,7 +8,7 @@ export default function Inputbox({ label, placeholder, onchange }) {
       <div className="text-lg">{label}</div>
       <div>
         
-        <input type="text" className="border-2 border-slate-500 p-1 rounded-lg text-center" placeholder={placeholder} onChange={onchange} />
+        <input type="text" className="border-1  bg-transparent   p-2 rounded-md outline-none text-white border-black  text-center" placeholder={placeholder} onChange={onchange} />
       </div>
     </div>
   );
